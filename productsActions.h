@@ -92,14 +92,16 @@ void initializeProducts()
     products[14].price = 6.9;
 }
 
-void writeProductsIntoFile(FILE *file) {
+void writeProductsIntoFile(FILE *file)
+{
     for (int i = 0; i < MAX_ITEMS; ++i)
     {
         fprintf(file, "%s %d %.2f\n", products[i].name, products[i].quantity, products[i].price);
     }
 }
 
-void updateProducts() {
+void updateProducts()
+{
     FILE *productsFile = fopen(productsFileName, "w");
     if (validateFile1(productsFile))
     {
@@ -129,21 +131,40 @@ void loadProducts()
         printf("Arquivo de produtos criado com sucesso.\n");
 
         printf("Carregando os produtos para o arquivo %s", productsFileName);
-        for (int i = 0; i < MAX_ITEMS; ++i)
-        {
-            fprintf(productsFile, "%s %d %.2f\n", products[i].name, products[i].quantity, products[i].price);
-        }
+        writeProductsIntoFile(productsFile);
     }
     else
     {
         printf("Arquivo encontrado, carregando produtos...\n");
         fclose(productsFile);
         productsFile = fopen(productsFileName, "r");
-
-        for (int i = 0; i < MAX_ITEMS; ++i)
+        int i = 0;
+        while (fscanf(productsFile, "%s %d %f", products[i].name, &products[i].quantity, &products[i].price) != EOF)
         {
-            fscanf(productsFile, "%s %d %f", products[i].name, &products[i].quantity, &products[i].price);
+            i++;
         }
     }
     fclose(productsFile);
+}
+
+void updateProduct(int productNumber)
+{
+    int productIndex = productNumber - 1;
+    if (productIndex < MAX_ITEMS && productIndex != -1)
+    {
+        printf("Produto: %s | Quantidade: %d | Preco: %.2f\n", products[productIndex].name, products[productIndex].quantity, products[productIndex].price);
+        printf("Digite o novo nome do produto: ");
+        scanf("%s", &products[productIndex].name);
+
+        printf("Digite a nova quantidade: ");
+        scanf("%d", &products[productIndex].quantity);
+
+        printf("Digite o novo preço do produto: ");
+        scanf("%f", &products[productIndex].price);
+        updateProducts();
+    }
+    else
+    {
+        printf("Código do produto inválido...");
+    }
 }

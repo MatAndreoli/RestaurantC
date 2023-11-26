@@ -18,71 +18,140 @@ struct Order
 };
 
 Order orders[MAX_ORDERS];
-Order order;
-int totalOrders = 0;
+
+int totalOrders = 0, notCalledOrders = 0;
 
 int validateFile(FILE *file)
 {
     return file == NULL;
 }
 
-void saveOrder()
+void loadOrders()
 {
-    int newTotalHistory = 0;
-    FILE *ordersFile = fopen(ordersFileName, "w");
+    FILE *ordersFile = fopen(ordersFileName, "r");
     FILE *ordersHistoryFile = fopen(ordersHistoryFileName, "r");
+    bool verifyHistory = true;
+    char ticketHistory[10];
+    char ticketHistories[10][10];
+    Order order;
+    Order readOrders[MAX_ORDERS];
+    int alreadyGone[10];
+    int i = 0, k = 0, m = 0;
+
+    if (validateFile(ordersFile))
+    {
+        printf("Arquivo não encontrado  -> %s", ordersFileName);
+        return;
+    }
+
+    if (validateFile(ordersHistoryFile))
+    {
+        printf("Arquivo não encontrado  -> %s", ordersHistoryFileName);
+        verifyHistory = false;
+    }
+
+    while (fscanf(ordersFile, "%s %s %s %s %d %f", order.ticket, order.date, order.time, order.description, &order.quantity, &order.total) != EOF)
+    {
+        readOrders[m] = order;
+        m++;
+    }
+
+    totalOrders = m;
+
+    if (verifyHistory)
+    {
+        while (fscanf(ordersHistoryFile, "%s", ticketHistory) != EOF)
+        {
+            strcpy(ticketHistories[i], ticketHistory);
+            i++;
+        }
+
+        for (int z = 0; z < m; z++)
+        {
+            bool called;
+            for (int y = 0; y < i; y++)
+            {
+                called = true;
+                if (strcmp(ticketHistories[y], readOrders[z].ticket) != 0)
+                {
+                    called = false;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (!called)
+            {
+                orders[z] = readOrders[z];
+                notCalledOrders++;
+            }
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            printf("FF: %d\n", alreadyGone[i]);
+        }
+    }
+    else
+    {
+        while (fscanf(ordersFile, "%s %s %s %s %d %f", order.ticket, order.date, order.time, order.description, &order.quantity, &order.total) != EOF)
+        {
+            orders[totalOrders] = order;
+            totalOrders++;
+        }
+    }
+
+    fclose(ordersFile);
+}
+
+void showOrders()
+{
+    FILE *ordersFile = fopen(ordersFileName, "r");
+    if (validateFile(ordersFile))
+    {
+        printf("Nenhum pedido foi feito ainda...\n");
+        return;
+    }
+    Order order;
+    printf("%-10s%-11s%-10s%-20s%-15s%-10s\n", "Senha", "Data", "Hora", "Descrição", "Quantidade", "Valor Total");
+    while (fscanf(ordersFile, "%s %s %s %s %d %f", order.ticket, order.date, order.time, order.description, &order.quantity, &order.total) != EOF)
+    {
+        printf("%-10s%s %-10s%-20s%-15dR$%.2f\n", order.ticket, order.date, order.time, order.description, order.quantity, order.total);
+    }
+}
+
+void saveOrder(Order *order)
+{
+    FILE *ordersFile = fopen(ordersFileName, "a");
+
     if (validateFile(ordersFile))
     {
         printf("Arquivo não encontrado -> %s", ordersFileName);
         return;
     }
 
-    if (validateFile(ordersHistoryFile))
-    {
-        ordersHistoryFile = fopen(ordersHistoryFileName, "w");
-        fprintf(ordersHistoryFile, "%d", totalOrders);
-        newTotalHistory = totalOrders;
-    }
-    else
-    {
-        ordersHistoryFile = fopen(ordersHistoryFileName, "r+");
-        if (totalOrders > 1)
-        {
-            fprintf(ordersHistoryFile, "%d", totalOrders);
-            newTotalHistory = totalOrders;
-        }
-        else
-        {
-            char totalHistory;
-            fscanf(ordersHistoryFile, "%c", &totalHistory);
-            newTotalHistory = totalOrders + totalHistory;
-            fprintf(ordersHistoryFile, "%d", newTotalHistory);
-        }
-    }
-
-    for (int i = 0; i < newTotalHistory; i++)
-    {
-        fprintf(ordersFile, "%s %s %s %s %d %.2f\n", orders[i].ticket, orders[i].date, orders[i].time, orders[i].description, orders[i].quantity, orders[i].total);
-    }
+    printf("%s %s %s %s %d %.2f\n", order->ticket, order->date, order->time, order->description, order->quantity, order->total);
+    fprintf(ordersFile, "%s %s %s %s %d %.2f\n", order->ticket, order->date, order->time, order->description, order->quantity, order->total);
 
     fclose(ordersFile);
-    fclose(ordersHistoryFile);
 }
 
-void makeOrder(int productNumber, int quantity, int ticketType)
+int makeOrder(int productNumber, int quantity, int ticketType)
 {
-    printf("Total orders: %d", totalOrders);
     if (productNumber < 1 || productNumber > MAX_ITEMS)
     {
         printf("Produto inválido...");
-        return;
+        return 1;
     }
+
     int productIndex = productNumber - 1;
 
     if (products[productIndex].quantity <= 0 || products[productIndex].quantity < quantity)
     {
         printf("Sem estoque do produto escolhido...");
-        return;
+        return 1;
     }
 
     products[productIndex].quantity = products[productIndex].quantity - quantity;
@@ -91,6 +160,7 @@ void makeOrder(int productNumber, int quantity, int ticketType)
     strcpy(order.description, products[productIndex].name);
     order.quantity = quantity;
     order.total = quantity * products[productIndex].price;
+    printf("Berfore fdjfks %d", totalOrders);
     sprintf(order.ticket, "%c%d%d", (ticketType == 1 ? 'N' : 'P'), totalOrders / 100, totalOrders % 100);
 
     time_t agora = time(NULL);
@@ -100,12 +170,13 @@ void makeOrder(int productNumber, int quantity, int ticketType)
 
     orders[totalOrders] = order;
     totalOrders++;
-    printf("Total orders: %d", totalOrders);
 
     printf("Pedido registrado.\n");
     printf("Detalhes do pedido feito: \n");
     printf("Senha: %s | Pedido: %s | Quantidade: %d | Valor Total: R$%.2f\n", order.ticket, order.description, order.quantity, order.total);
 
     updateProducts();
-    saveOrder();
+    saveOrder(&order);
+
+    return 0;
 }

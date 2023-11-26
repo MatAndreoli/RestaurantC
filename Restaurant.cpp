@@ -4,6 +4,7 @@
 
 #include "productsActions.h"
 #include "orderActions.h"
+#include "ticketManagement.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -11,17 +12,9 @@
 #include <unistd.h>
 #endif
 
-int opPrincipal, opPedido, opPrato, opBebida, opSobremesa;
-int ip, ib, is;
-char confPedido, enter;
-int PRATO = 0, BEBIDA = 1, SOBREMESA = 2;
+int opPrincipal;
 
-struct Pedido
-{
-	int prato[10];
-	int bebida[10];
-	int sobremesa[10];
-};
+char enter;
 
 void clear()
 {
@@ -34,8 +27,8 @@ void clear()
 
 void backToMenu()
 {
-	printf("\n\tPressione qualquer tecla para voltar ao menu.");
-	scanf("%c%c", &enter, &enter); // aguarda uma tecla
+	printf("\nPressione qualquer tecla para voltar ao menu.");
+	scanf("%c%c", &enter, &enter);
 }
 
 void header(char *text)
@@ -45,7 +38,6 @@ void header(char *text)
 
 void showMenu()
 {
-	header("Menu Principal");
 	printf("%-63s%-63s%s\n", "Pratos", "Bebidas", "Sobremesas");
 	for (int i = 0; i < 5; i++)
 	{
@@ -55,39 +47,97 @@ void showMenu()
 	}
 }
 
-struct Pedido pedido;
-
 int main()
 {
 	loadProducts();
+	loadOrders();
+	initializeList();
+
 	opPrincipal = 1;
-	while (opPrincipal != 0)
+	int chosenProduct, chosenQuantity, ticketType;
+	while (opPrincipal != 8)
 	{
 		clear();
 		header("Restaurante");
-		printf("1-Menu\n2-Histórico\n3-Pedir\n0-FIM\nEscolha: ");
+		printf("Fila de Espera\n");
+		l.display();
+		printf("\n1. %-20s4. %s\n", "Menu", "Editar Produtos");
+		printf("2. %-20s5. %s\n", "Histórico", "Chamar Senha");
+		printf("3. %-20s6. %s\n", "Pedir", "Limpar Tudo");
+		printf("8. Sair\n");
+
+		printf("Escolha uma opção: ");
 		scanf("%i", &opPrincipal);
 		switch (opPrincipal)
 		{
 		case 1:
 			clear();
+			header("Menu Principal");
 			showMenu();
 			backToMenu();
 			break;
 		case 2:
-			//	chamadaSenha();
+			clear();
+			header("Histórico de Pedidos");
+			showOrders();
+			backToMenu();
 			break;
 		case 3:
+		{
 			clear();
+			header("Fazer Pedido");
 			showMenu();
-			int chosenProduct, chosenQuantity, ticketType;
 			printf("Escolha um produto: ");
 			scanf("%d", &chosenProduct);
 			printf("Quanto do produto vai querer: ");
 			scanf("%d", &chosenQuantity);
 			printf("Tipo de senha -> 1-Normal 2-Preferencial: ");
 			scanf("%d", &ticketType);
-			makeOrder(chosenProduct, chosenQuantity, ticketType);
+			int successfulOrder = makeOrder(chosenProduct, chosenQuantity, ticketType);
+			if (successfulOrder == 0)
+			{
+				l.insert(orders[totalOrders - 1].ticket);
+			}
+			backToMenu();
+			break;
+		}
+		case 4:
+			clear();
+			header("Editar Produtos");
+			showMenu();
+			printf("Digite o código do produto: ");
+			scanf("%d", &chosenProduct);
+			updateProduct(chosenProduct);
+			backToMenu();
+			break;
+		case 5:
+			clear();
+			header("Chamar Senha");
+			if (l.head == nullptr)
+			{
+				printf("Nâo há pedidos...");
+				backToMenu();
+				break;
+			}
+			callTicket();
+			backToMenu();
+			break;
+		case 6:
+			clear();
+			header("Excluindo arquivos");
+			remove(ordersFileName);
+			remove(productsFileName);
+			remove(ordersHistoryFileName);
+			loadProducts();
+			totalOrders = 0;
+			l.head = nullptr;
+			break;
+		case 8:
+			clear();
+			break;
+		default:
+			clear();
+			header("Opção inválida");
 			backToMenu();
 			break;
 		}
