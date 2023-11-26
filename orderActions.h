@@ -89,13 +89,9 @@ void loadOrders()
             }
         }
     }
-    else
+    for (int i = 0; i < m; i++)
     {
-        while (fscanf(ordersFile, "%s %s %s %s %d %f", order.ticket, order.date, order.time, order.description, &order.quantity, &order.total) != EOF)
-        {
-            orders[totalOrders] = order;
-            totalOrders++;
-        }
+        orders[i] = readOrders[i];
     }
 
     fclose(ordersFile);
@@ -127,7 +123,6 @@ void saveOrder(Order *order)
         return;
     }
 
-    printf("%s %s %s %s %d %.2f\n", order->ticket, order->date, order->time, order->description, order->quantity, order->total);
     fprintf(ordersFile, "%s %s %s %s %d %.2f\n", order->ticket, order->date, order->time, order->description, order->quantity, order->total);
 
     fclose(ordersFile);
@@ -155,7 +150,6 @@ int makeOrder(int productNumber, int quantity, int ticketType)
     strcpy(order.description, products[productIndex].name);
     order.quantity = quantity;
     order.total = quantity * products[productIndex].price;
-    printf("Berfore fdjfks %d", totalOrders);
     sprintf(order.ticket, "%c%d%d", (ticketType == 1 ? 'N' : 'P'), totalOrders / 100, totalOrders % 100);
 
     time_t agora = time(NULL);
@@ -166,7 +160,7 @@ int makeOrder(int productNumber, int quantity, int ticketType)
     orders[totalOrders] = order;
     totalOrders++;
 
-    printf("Pedido registrado.\n");
+    printf("\nPedido registrado.\n");
     printf("Detalhes do pedido feito: \n");
     printf("Senha: %s | Pedido: %s | Quantidade: %d | Valor Total: R$%.2f\n", order.ticket, order.description, order.quantity, order.total);
 

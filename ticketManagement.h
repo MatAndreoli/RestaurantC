@@ -13,9 +13,8 @@ struct Node
     char *data;
     Node *next;
 
-    // Parameterised constructor with default argument
     Node(char *val) : data(val), next(nullptr) {}
-    // Parameterise constructor
+
     Node(char *val, Node *tempNext) : data(val), next(tempNext) {}
 };
 
@@ -71,11 +70,11 @@ LinkedList l;
 void initializeList()
 {
     int initial = 0;
-    if (notCalledOrders > 0)
+    if (notCalledOrders > 0 && totalOrders > 0)
     {
         initial = totalOrders - notCalledOrders;
     }
-    else
+    else if (totalOrders == 0)
     {
         return;
     }
