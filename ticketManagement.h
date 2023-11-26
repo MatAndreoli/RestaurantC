@@ -70,12 +70,14 @@ LinkedList l;
 
 void initializeList()
 {
-    printf("Valor totalOrders: %d\n", totalOrders);
-    printf("Valor notCalledOrders: %d\n", notCalledOrders);
     int initial = 0;
     if (notCalledOrders > 0)
     {
         initial = totalOrders - notCalledOrders;
+    }
+    else
+    {
+        return;
     }
     FILE *temp = fopen(ordersHistoryFileName, "r");
     for (int i = initial; i < totalOrders; i++)
@@ -113,15 +115,5 @@ void callTicket()
     fclose(ordersFile);
     fclose(temp);
     l.shift();
-    // totalOrders--;
-    // notCalledOrders--;
-
-    // for (int i = 0; i < totalOrders; i++)
-    // {
-    //     for (int j = i; j < totalOrders; j++)
-    //     {
-    //         orders[j] = orders[j + 1];
-    //     }
-    // }
     loadOrders();
 }

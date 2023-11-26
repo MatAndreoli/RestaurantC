@@ -88,11 +88,6 @@ void loadOrders()
                 notCalledOrders++;
             }
         }
-
-        for (int i = 0; i < 3; i++)
-        {
-            printf("FF: %d\n", alreadyGone[i]);
-        }
     }
     else
     {
