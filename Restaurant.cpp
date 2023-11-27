@@ -1,3 +1,10 @@
+/*
+ADC4 - Algoritmos
+Engenharia da Computação
+Matheus Andreoli Vieira
+RA: 230022942
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
