@@ -71,6 +71,7 @@ int main()
 		printf("\n1. %-20s4. %s\n", "Menu", "Editar Produtos");
 		printf("2. %-20s5. %s\n", "Histórico", "Chamar Senha");
 		printf("3. %-20s6. %s\n", "Pedir", "Limpar Tudo");
+		printf("7. %-20s\n", "Consultar pedidos");
 		printf("8. Sair\n");
 
 		printf("Escolha uma opção: ");
@@ -138,6 +139,16 @@ int main()
 			loadProducts();
 			totalOrders = 0;
 			l.head = nullptr;
+			break;
+		case 7:
+			clear();
+			header("Consultar pedidos");
+			showOrders();
+			char *consult;
+			printf("Digite a senha do pedido ou a data: ");
+			scanf("%s", consult);
+			searchOrder(consult);
+			backToMenu();
 			break;
 		case 8:
 			clear();

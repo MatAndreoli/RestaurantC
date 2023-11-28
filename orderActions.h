@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <regex.h>
 
 char ordersFileName[13] = "orders.txt";
 char ordersHistoryFileName[20] = "ordersHistory.txt";
@@ -168,4 +169,86 @@ int makeOrder(int productNumber, int quantity, int ticketType)
     saveOrder(&order);
 
     return 0;
+}
+
+void findInFile(char *consult, int type)
+{
+    FILE *ordersFile = fopen(ordersFileName, "r");
+
+    if (validateFile(ordersFile))
+    {
+        printf("Arquivo não encontrado  -> %s", ordersFileName);
+        return;
+    }
+
+    Order order;
+    Order readOrders[MAX_ORDERS];
+
+    int i = 0;
+    while (fscanf(ordersFile, "%s %s %s %s %d %f", order.ticket, order.date, order.time, order.description, &order.quantity, &order.total) != EOF)
+    {
+        readOrders[i] = order;
+        i++;
+    }
+
+    char *value;
+    for (int z = 0; z < i; z++)
+    {
+        if (type == 1)
+        {
+            strcpy(value, readOrders[z].ticket);
+        }
+        else
+        {
+            strcpy(value, readOrders[z].date);
+        }
+
+        if (strcmp(consult, value) == 0)
+        {
+            printf("%s %s %s %s %d R$%.2f\n", readOrders[z].ticket, readOrders[z].date, readOrders[z].time, readOrders[z].description, readOrders[z].quantity, readOrders[z].total);
+            break;
+        }
+    }
+
+    fclose(ordersFile);
+}
+
+void searchOrder(char *consult)
+{
+    regex_t regex;
+    int ticketPattern, datePattern;
+    ticketPattern = regcomp(&regex, "[NP][0-9][0-9]", 0);
+
+    if (ticketPattern)
+    {
+        printf("Regex de senha não foi compilada.\n");
+        return;
+    }
+
+    ticketPattern = regexec(&regex, consult, 0, NULL, 0);
+
+    if (!ticketPattern)
+    {
+        printf("\nBusca por senha:\n");
+        findInFile(consult, 1);
+        return;
+    }
+
+    datePattern = regcomp(&regex, "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]", 0);
+    if (datePattern)
+    {
+        printf("Regex de data não foi compilada.\n");
+        return;
+    }
+
+    datePattern = regexec(&regex, consult, 0, NULL, 0);
+
+    if (!datePattern)
+    {
+        printf("\nBusca por data:\n");
+        findInFile(consult, 2);
+        return;
+    }
+
+    printf("Valor passado para consulta é inválido.\n");
 }
